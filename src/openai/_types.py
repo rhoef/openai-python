@@ -133,7 +133,7 @@ NotGivenOr = Union[_T, NotGiven]
 NOT_GIVEN = NotGiven()
 
 
-class Omit:
+class Omit(pydantic.BaseModel):
     """In certain situations you need to be able to represent a case where a default value has
     to be explicitly removed and `None` is not an appropriate substitute, for example:
 
@@ -165,7 +165,21 @@ class ModelBuilderProtocol(Protocol):
     ) -> _T: ...
 
 
-Headers = Mapping[str, Union[str, Omit]]
+class Headers(pydantic.RootModel):
+    root: Mapping[str, Union[str, Omit]]
+
+    def __len__(self):
+        return len(self.root)
+
+    def __iter__(self):
+        return iter(self.root)
+
+    def __getitem__(self, item):
+        return self.root[item]
+
+    def __repr__(self):
+        values = " ".join(f"{k}={v}" for k, v in self.root.items() if k != "api_key")
+        return f"Header({values})"
 
 
 class HeadersLikeProtocol(Protocol):
